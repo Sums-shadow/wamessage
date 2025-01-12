@@ -1,0 +1,8 @@
+node_modules
+baileys_auth_info
+
+# Ignore the build directory
+build
+./baileys_auth_info
+./node_modules
+./bck

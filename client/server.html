@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<title>Labreche Whatsapp</title>
+	<meta name="description" content="WhatsApp Api otomatis.">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <style>
+body{
+    background: rgb(200, 220, 224);
+}
+        .form {
+  font-family: Helvetica, sans-serif;
+  max-width: 400px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.title{
+  font-size: 20px;
+  font-weight: 300;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+#btnDisco{
+  background: #1f5181;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.form h1 {
+  background: #03773f;
+  padding: 20px 0;
+  font-weight: 300;
+  text-align: center;
+  color: #fff;
+  margin: -16px -16px 16px -16px;
+  font-size:  25px;
+}
+.form input[type="text"],
+.form input[type="url"] {
+  box-sizing: border-box;
+  width: 100%;
+  background: #fff;
+  margin-bottom: 4%;
+  border: 1px solid #ccc;
+  padding: 4%;
+  font-size: 17px;
+  color: rgb(9, 61, 125);
+}
+.form input[type="text"]:focus,
+.form input[type="url"]:focus {
+  box-shadow: 0 0 5px #5868bf;
+  padding: 4%;
+  border: 1px solid #5868bf;
+}
+
+.form button {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  width: 180px;
+  margin: 0 auto;
+  padding: 3%;
+  background: #0853b6;
+  border: none;  
+  border-radius: 3px;
+  font-size: 17px;
+  border-top-style: none;
+  border-right-style: none;
+  border-left-style: none;
+  color: #fff;
+  cursor: pointer;
+}
+.form button:hover {
+  background: rgba(88,104,191, 0.5);
+}
+
+.qrcode{
+  padding: 16px;
+  margin-bottom: 30px;
+}
+.qrcode img{
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(67, 67, 68, 0.25);
+  padding: 4px;
+}
+
+    </style>
+</head>
+<body>
+    
+<div class="form">
+  <img src="./assets/banwa.png" alt="" width="100%">
+  <!-- <h1>WhatsApp API QR</h1> -->
+  <div id="qrcode-container">
+	<img src="./assets/loader.gif" alt="loading" id="qrcode" style="width: 250px;">
+  </div>
+	<div class="card">
+    <button id="btnDisco" style="display: none;">Se déconnecter</button>
+		<div class="title">Guide</div>
+		<div class="body">
+			<p>
+				<li>Scannez le code QR suivant avec votre application WhatsApp, comme d'habitude sur WhatsApp Web.</li>
+				<li>La session Web Whatsapp active se déconnectera, remplacée par ce serveur.</li>
+				<li><b>Fais-en bon usage.</b></li>
+			</p>
+		</div>
+	</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js" crossorigin="anonymous"></script>
+		<script>
+			const qrcode = document.getElementById("qrcode");
+      const btnDiso = document.getElementById("btnDisco");
+			const socket = io();
+
+			socket.on("qr", src => {
+				qrcode.setAttribute("src", src);
+				qrcode.setAttribute("alt", "qrcode");
+			});
+			socket.on("qrstatus", src => {
+				qrcode.setAttribute("src", src);
+				qrcode.setAttribute("alt", "loading");
+			});
+			
+			socket.on("log", log => {
+				console.log(log);
+        if(log === "WhatsApp connecté!" || log=="Le QR Code a été scanné!"){
+          // qrcode.style.display = "none";
+          btnDiso.style.display = "block";
+        }else if(log !== "WhatsApp connecté!"){
+          // qrcode.style.display = "none";
+          btnDiso.style.display = "none";
+        }
+			})
+			
+
+
+  document.getElementById('btnDisco').addEventListener('click', function() { fetch('http://localhost:8050/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* your payload here */ }) }) .then(response => response.json()) .then(data => { console.log('Success:', data); }) .catch((error) => { console.error('Error:', error); }); });
+		</script>
+
+
+
+
+</body>
+</html>
