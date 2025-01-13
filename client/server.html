@@ -98,10 +98,10 @@ body{
 <body>
     
 <div class="form">
-  <img src="./assets/banwa.png" alt="" width="100%">
+  <img src="https://firebasestorage.googleapis.com/v0/b/goodvibes-event.appspot.com/o/whatsapp%2Fbanwa.png?alt=media&token=fa25a487-d705-43e4-be63-41b86c28466b" alt="" width="100%">
   <!-- <h1>WhatsApp API QR</h1> -->
   <div id="qrcode-container">
-	<img src="./assets/loader.gif" alt="loading" id="qrcode" style="width: 250px;">
+	<img src="https://firebasestorage.googleapis.com/v0/b/goodvibes-event.appspot.com/o/whatsapp%2Floader.gif?alt=media&token=b1d4209a-0588-4a83-85af-07c6d54b54c4" alt="loading" id="qrcode" style="width: 250px;">
   </div>
 	<div class="card">
     <button id="btnDisco" style="display: none;">Se déconnecter</button>
@@ -123,10 +123,12 @@ body{
 			const socket = io();
 
 			socket.on("qr", src => {
+        console.log("QR CODE ",src)
 				qrcode.setAttribute("src", src);
 				qrcode.setAttribute("alt", "qrcode");
 			});
 			socket.on("qrstatus", src => {
+        console.log("QR STATUS ",src)
 				qrcode.setAttribute("src", src);
 				qrcode.setAttribute("alt", "loading");
 			});
@@ -144,7 +146,8 @@ body{
 			
 
 
-  document.getElementById('btnDisco').addEventListener('click', function() { fetch('http://localhost:8050/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* your payload here */ }) }) .then(response => response.json()) .then(data => { console.log('Success:', data); }) .catch((error) => { console.error('Error:', error); }); });
+  // document.getElementById('btnDisco').addEventListener('click', function() { console.log("SUPRESSION"); fetch('http://localhost:3050/whatsapp/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* your payload here */ }) }) .then(response => response.json()) .then(data => { console.log('Success:', data); }) .catch((error) => { console.error('Error:', error); }); });
+  document.getElementById('btnDisco').addEventListener('click', function() { fetch('https://labreche.ovh/whatsapp/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ /* your payload here */ }) }) .then(response => response.json()) .then(data => { console.log('Success:', data); }) .catch((error) => { console.error('Error:', error); }); });
 		</script>
 
 
