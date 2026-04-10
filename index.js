@@ -2,6 +2,7 @@ const {
   default: makeWASocket,
   fetchLatestBaileysVersion,
   isJidBroadcast,
+  proto,
   useMultiFileAuthState,
 } = require("@whiskeysockets/baileys");
 const multer = require('multer');
@@ -17,7 +18,15 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const app = require("express")();
+const snelBot = require("./lib/snel-bot");
+
+const app = express();
+
+app.post(
+  "/whatsapp/webhook/stripe",
+  express.raw({ type: "application/json" }),
+  (req, res) => snelBot.handleStripeWebhook(req, res)
+);
 
 // enable files upload
 app.use(
@@ -46,6 +55,22 @@ app.get("/whatsapp", (req, res) => {
   res.sendFile("./client/index.html", {
     root: __dirname,
   });
+});
+
+app.get("/whatsapp/payment-success", (req, res) => {
+  res
+    .type("html")
+    .send(
+      "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"utf-8\"><title>Paiement réussi</title></head><body style=\"font-family:system-ui,sans-serif;text-align:center;padding:48px;\"><h1>Paiement réussi</h1><p>Vous pouvez fermer cette page et retourner sur WhatsApp.</p></body></html>"
+    );
+});
+
+app.get("/whatsapp/payment-cancel", (req, res) => {
+  res
+    .type("html")
+    .send(
+      "<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"utf-8\"><title>Paiement annulé</title></head><body style=\"font-family:system-ui,sans-serif;text-align:center;padding:48px;\"><h1>Paiement annulé</h1><p>Vous pouvez réessayer depuis la conversation WhatsApp.</p></body></html>"
+    );
 });
 
 app.post("/whatsapp/disconnect", async (req, res) => {
@@ -181,10 +206,30 @@ async function connectToWhatsApp() {
     logger: log({ level: "silent" }),
     version,
     shouldIgnoreJid: (jid) => isJidBroadcast(jid),
+    patchMessageBeforeSending: (message) => {
+      const needsPatch = !!(
+        message.buttonsMessage ||
+        message.templateMessage ||
+        message.listMessage
+      );
+      if (!needsPatch) return message;
+      return proto.Message.fromObject({
+        viewOnceMessage: {
+          message: {
+            messageContextInfo: {
+              deviceListMetadataVersion: 2,
+              deviceListMetadata: {},
+            },
+            ...message,
+          },
+        },
+      });
+    },
   });
   
   sock.multi = true;
-  
+  snelBot.setMessaging(sock);
+
   sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
@@ -209,7 +254,12 @@ async function connectToWhatsApp() {
   
   sock.ev.on("creds.update", saveCreds);
   
-  sock.ev.on("messages.upsert", () => {});
+  sock.ev.on("messages.upsert", async (up) => {
+    if (up.type !== "notify") return;
+    for (const msg of up.messages || []) {
+      await snelBot.processIncomingMessage(msg);
+    }
+  });
   
   sock.ev.on("messages.ack", (m) => {
     console.log("ack", m);
